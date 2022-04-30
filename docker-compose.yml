@@ -1,0 +1,96 @@
+version: "3.7"
+services:
+  phpfe-app:
+    build:
+      args:
+        user: ashishthedev
+        uid: 1000
+      context: ./
+      dockerfile: Dockerfile
+    image: adfe
+    container_name: adfe-app
+    ports:
+      - 9000:9000
+    env_file:
+      - .env
+    restart: unless-stopped
+    working_dir: /var/www/public
+    volumes:
+      - ./etc/php/php.ini:/usr/local/etc/php/conf.d/php.ini
+      - ./web:/var/www
+      - ./etc/ssl:/etc/ssl
+    depends_on:
+      - mysqldb
+    networks:
+      - app-network
+      - nginx-reverse-proxy_reverse-proxy
+
+  mysqldb:
+    image: mysql:5.7
+    container_name: adfe-mysqldb
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - 3307:3306
+    expose:
+      - 3307
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_USER: ${MYSQL_USER}
+      SERVICE_TAGS: dev
+      SERVICE_NAME: mysql
+    command: mysqld --sql_mode=""
+    volumes:
+      - ./etc/mysql/init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
+      - ./data/db/mysql:/var/lib/mysql
+    networks:
+      - app-network
+
+  pma:
+    image: phpmyadmin/phpmyadmin
+    container_name: pma
+    ports:
+      - 8080:80
+    expose:
+      - 8080
+    environment:
+      - PMA_ARBITRARY=1
+      - PMA_HOST=${MYSQL_HOST}
+    restart: always
+    depends_on:
+      - mysqldb
+    networks:
+      - app-network
+      - nginx-reverse-proxy_reverse-proxy
+
+  nginx:
+    image: nginx:alpine
+    container_name: adfe-nginx
+    restart: unless-stopped
+    ports:
+      - 8090:80
+      - 8020:8020
+      - 443:443
+    volumes:
+      - ./etc/nginx:/etc/nginx/conf.d
+      - ./web:/var/www
+      - ./etc/ssl/fullchain.pem:/etc/ssl/cert.pem
+      - ./etc/ssl/privkey.pem:/etc/ssl/privkey.pem
+    # expose:
+    #   - 80
+    #   - 443
+    depends_on:
+      - phpfe-app
+      - mysqldb
+    networks:
+      - app-network
+
+#Docker Networks
+networks:
+  app-network:
+    driver: bridge
+  nginx-reverse-proxy_reverse-proxy:
+    external: true

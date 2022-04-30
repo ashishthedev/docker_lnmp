@@ -1,0 +1,8 @@
+{
+  "require": {
+    "phpoffice/phpspreadsheet": "1.20.0",
+    "nadirhamid/docx-to-html": "0.0.1",
+    "phpoffice/phpword": "0.18.2",
+    "dompdf/dompdf": "dev-master"
+  }
+}
