@@ -7,8 +7,8 @@ services:
         uid: 1000
       context: ./
       dockerfile: Dockerfile
-    image: adfe
-    container_name: adfe-app
+    image: devapp-phpfe
+    container_name: devapp-phpfe
     ports:
       - 9000:9000
     env_file:
@@ -27,7 +27,7 @@ services:
 
   mysqldb:
     image: mysql:5.7
-    container_name: adfe-mysqldb
+    container_name: devapp-mysqldb
     restart: unless-stopped
     env_file:
       - .env
@@ -51,7 +51,7 @@ services:
 
   pma:
     image: phpmyadmin/phpmyadmin
-    container_name: pma
+    container_name: devapp-pma
     ports:
       - 8080:80
     expose:
@@ -68,7 +68,7 @@ services:
 
   nginx:
     image: nginx:alpine
-    container_name: adfe-nginx
+    container_name: devapp-nginx
     restart: unless-stopped
     ports:
       - 8090:80
